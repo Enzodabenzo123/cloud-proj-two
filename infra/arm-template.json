@@ -1,0 +1,459 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "serverfarms_CentralUSLinuxDynamicPlan_name": {
+      "type": "String"
+    },
+    "sites_diet_analysis_func_2026_name": {
+      "type": "String"
+    },
+    "storageAccounts_dietanalysisst2026_name": {
+      "type": "String"
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2026-04-01",
+      "kind": "StorageV2",
+      "location": "centralus",
+      "name": "[parameters('storageAccounts_dietanalysisst2026_name')]",
+      "properties": {
+        "accessTier": "Hot",
+        "allowBlobPublicAccess": false,
+        "allowCrossTenantReplication": false,
+        "encryption": {
+          "keySource": "Microsoft.Storage",
+          "services": {
+            "blob": {
+              "enabled": true,
+              "keyType": "Account"
+            },
+            "file": {
+              "enabled": true,
+              "keyType": "Account"
+            }
+          }
+        },
+        "minimumTlsVersion": "TLS1_0",
+        "networkAcls": {
+          "bypass": "None",
+          "defaultAction": "Allow",
+          "ipRules": [],
+          "ipv6Rules": [],
+          "virtualNetworkRules": []
+        },
+        "supportsHttpsTrafficOnly": true
+      },
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "type": "Microsoft.Storage/storageAccounts"
+    },
+    {
+      "apiVersion": "2024-11-01",
+      "kind": "functionapp",
+      "location": "Central US",
+      "name": "[parameters('serverfarms_CentralUSLinuxDynamicPlan_name')]",
+      "properties": {
+        "asyncScalingEnabled": false,
+        "elasticScaleEnabled": false,
+        "hyperV": false,
+        "isSpot": false,
+        "isXenon": false,
+        "maximumElasticWorkerCount": 1,
+        "perSiteScaling": false,
+        "reserved": true,
+        "targetWorkerCount": 0,
+        "targetWorkerSizeId": 0,
+        "zoneRedundant": false
+      },
+      "sku": {
+        "capacity": 0,
+        "family": "Y",
+        "name": "Y1",
+        "size": "Y1",
+        "tier": "Dynamic"
+      },
+      "type": "Microsoft.Web/serverfarms"
+    },
+    {
+      "apiVersion": "2026-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_dietanalysisst2026_name'))]"
+      ],
+      "name": "[concat(parameters('storageAccounts_dietanalysisst2026_name'), '/default')]",
+      "properties": {
+        "cors": {
+          "corsRules": []
+        },
+        "deleteRetentionPolicy": {
+          "allowPermanentDelete": false,
+          "enabled": false
+        },
+        "staticWebsite": {
+          "enabled": false
+        }
+      },
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "type": "Microsoft.Storage/storageAccounts/blobServices"
+    },
+    {
+      "apiVersion": "2026-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_dietanalysisst2026_name'))]"
+      ],
+      "name": "[concat(parameters('storageAccounts_dietanalysisst2026_name'), '/default')]",
+      "properties": {
+        "cors": {
+          "corsRules": []
+        },
+        "protocolSettings": {
+          "smb": {}
+        },
+        "shareDeleteRetentionPolicy": {
+          "days": 7,
+          "enabled": true
+        }
+      },
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "type": "Microsoft.Storage/storageAccounts/fileServices"
+    },
+    {
+      "apiVersion": "2026-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_dietanalysisst2026_name'))]"
+      ],
+      "name": "[concat(parameters('storageAccounts_dietanalysisst2026_name'), '/default')]",
+      "properties": {
+        "cors": {
+          "corsRules": []
+        }
+      },
+      "type": "Microsoft.Storage/storageAccounts/queueServices"
+    },
+    {
+      "apiVersion": "2026-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_dietanalysisst2026_name'))]"
+      ],
+      "name": "[concat(parameters('storageAccounts_dietanalysisst2026_name'), '/default')]",
+      "properties": {
+        "cors": {
+          "corsRules": []
+        }
+      },
+      "type": "Microsoft.Storage/storageAccounts/tableServices"
+    },
+    {
+      "apiVersion": "2024-11-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_CentralUSLinuxDynamicPlan_name'))]"
+      ],
+      "kind": "functionapp,linux",
+      "location": "Central US",
+      "name": "[parameters('sites_diet_analysis_func_2026_name')]",
+      "properties": {
+        "clientAffinityEnabled": false,
+        "clientAffinityProxyEnabled": false,
+        "clientCertEnabled": false,
+        "clientCertMode": "Required",
+        "containerSize": 0,
+        "customDomainVerificationId": "5D050F9097BCBD6BC80E1B02ED3864006208B9C04C2BAEBFB2FB03CC49509708",
+        "dailyMemoryTimeQuota": 0,
+        "dnsConfiguration": {},
+        "enabled": true,
+        "endToEndEncryptionEnabled": false,
+        "hostNameSslStates": [
+          {
+            "hostType": "Standard",
+            "name": "[concat(parameters('sites_diet_analysis_func_2026_name'), '.azurewebsites.net')]",
+            "sslState": "Disabled"
+          },
+          {
+            "hostType": "Repository",
+            "name": "[concat(parameters('sites_diet_analysis_func_2026_name'), '.scm.azurewebsites.net')]",
+            "sslState": "Disabled"
+          }
+        ],
+        "hostNamesDisabled": false,
+        "httpsOnly": false,
+        "hyperV": false,
+        "ipMode": "IPv4",
+        "isXenon": false,
+        "keyVaultReferenceIdentity": "SystemAssigned",
+        "outboundVnetRouting": {
+          "allTraffic": false,
+          "applicationTraffic": false,
+          "backupRestoreTraffic": false,
+          "contentShareTraffic": false,
+          "imagePullTraffic": false
+        },
+        "publicNetworkAccess": "Enabled",
+        "redundancyMode": "None",
+        "reserved": true,
+        "scmSiteAlsoStopped": false,
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_CentralUSLinuxDynamicPlan_name'))]",
+        "siteConfig": {
+          "acrUseManagedIdentityCreds": false,
+          "alwaysOn": false,
+          "functionAppScaleLimit": 200,
+          "http20Enabled": false,
+          "linuxFxVersion": "Python|3.11",
+          "minimumElasticInstanceCount": 0,
+          "numberOfWorkers": 1
+        },
+        "storageAccountRequired": false
+      },
+      "type": "Microsoft.Web/sites"
+    },
+    {
+      "apiVersion": "2024-11-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_diet_analysis_func_2026_name'))]"
+      ],
+      "location": "Central US",
+      "name": "[concat(parameters('sites_diet_analysis_func_2026_name'), '/ftp')]",
+      "properties": {
+        "allow": false
+      },
+      "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies"
+    },
+    {
+      "apiVersion": "2024-11-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_diet_analysis_func_2026_name'))]"
+      ],
+      "location": "Central US",
+      "name": "[concat(parameters('sites_diet_analysis_func_2026_name'), '/scm')]",
+      "properties": {
+        "allow": false
+      },
+      "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies"
+    },
+    {
+      "apiVersion": "2024-11-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_diet_analysis_func_2026_name'))]"
+      ],
+      "location": "Central US",
+      "name": "[concat(parameters('sites_diet_analysis_func_2026_name'), '/web')]",
+      "properties": {
+        "acrUseManagedIdentityCreds": false,
+        "alwaysOn": false,
+        "autoHealEnabled": false,
+        "azureStorageAccounts": {},
+        "defaultDocuments": [
+          "Default.htm",
+          "Default.html",
+          "Default.asp",
+          "index.htm",
+          "index.html",
+          "iisstart.htm",
+          "default.aspx",
+          "index.php"
+        ],
+        "detailedErrorLoggingEnabled": false,
+        "experiments": {
+          "rampUpRules": []
+        },
+        "ftpsState": "FtpsOnly",
+        "functionAppScaleLimit": 200,
+        "functionsRuntimeScaleMonitoringEnabled": false,
+        "http20Enabled": false,
+        "http20ProxyFlag": 0,
+        "httpLoggingEnabled": false,
+        "ipSecurityRestrictions": [
+          {
+            "action": "Allow",
+            "description": "Allow all access",
+            "ipAddress": "Any",
+            "name": "Allow all",
+            "priority": 2147483647
+          }
+        ],
+        "linuxFxVersion": "Python|3.11",
+        "loadBalancing": "LeastRequests",
+        "localMySqlEnabled": false,
+        "logsDirectorySizeLimit": 35,
+        "managedPipelineMode": "Integrated",
+        "minTlsVersion": "1.2",
+        "minimumElasticInstanceCount": 0,
+        "netFrameworkVersion": "v4.0",
+        "numberOfWorkers": 1,
+        "preWarmedInstanceCount": 0,
+        "publishingUsername": "REDACTED",
+        "remoteDebuggingEnabled": false,
+        "requestTracingEnabled": false,
+        "scmIpSecurityRestrictions": [
+          {
+            "action": "Allow",
+            "description": "Allow all access",
+            "ipAddress": "Any",
+            "name": "Allow all",
+            "priority": 2147483647
+          }
+        ],
+        "scmIpSecurityRestrictionsUseMain": false,
+        "scmMinTlsVersion": "1.2",
+        "scmType": "None",
+        "use32BitWorkerProcess": false,
+        "virtualApplications": [
+          {
+            "physicalPath": "site\\wwwroot",
+            "preloadEnabled": false,
+            "virtualPath": "/"
+          }
+        ],
+        "vnetPrivatePortsCount": 0,
+        "vnetRouteAllEnabled": false,
+        "webSocketsEnabled": false
+      },
+      "type": "Microsoft.Web/sites/config"
+    },
+    {
+      "apiVersion": "2024-11-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_diet_analysis_func_2026_name'))]"
+      ],
+      "location": "Central US",
+      "name": "[concat(parameters('sites_diet_analysis_func_2026_name'), '/analyze')]",
+      "properties": {
+        "config": {
+          "bindings": [
+            {
+              "authLevel": "ANONYMOUS",
+              "direction": "IN",
+              "methods": [
+                "GET"
+              ],
+              "name": "req",
+              "route": "analyze",
+              "type": "httpTrigger"
+            },
+            {
+              "direction": "OUT",
+              "name": "$return",
+              "type": "http"
+            }
+          ],
+          "entryPoint": "analyze",
+          "functionDirectory": "/home/site/wwwroot",
+          "language": "python",
+          "name": "analyze",
+          "scriptFile": "function_app.py"
+        },
+        "href": "https://diet-analysis-func-2026.azurewebsites.net/admin/functions/analyze",
+        "invoke_url_template": "https://diet-analysis-func-2026.azurewebsites.net/api/analyze",
+        "isDisabled": false,
+        "language": "python",
+        "script_href": "https://diet-analysis-func-2026.azurewebsites.net/admin/vfs/home/site/wwwroot/function_app.py",
+        "test_data_href": "https://diet-analysis-func-2026.azurewebsites.net/admin/vfs/tmp/FunctionsData/analyze.dat"
+      },
+      "type": "Microsoft.Web/sites/functions"
+    },
+    {
+      "apiVersion": "2024-11-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_diet_analysis_func_2026_name'))]"
+      ],
+      "location": "Central US",
+      "name": "[concat(parameters('sites_diet_analysis_func_2026_name'), '/', parameters('sites_diet_analysis_func_2026_name'), '.azurewebsites.net')]",
+      "properties": {
+        "hostNameType": "Verified",
+        "siteName": "diet-analysis-func-2026"
+      },
+      "type": "Microsoft.Web/sites/hostNameBindings"
+    },
+    {
+      "apiVersion": "2026-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_dietanalysisst2026_name'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_dietanalysisst2026_name'))]"
+      ],
+      "name": "[concat(parameters('storageAccounts_dietanalysisst2026_name'), '/default/azure-webjobs-hosts')]",
+      "properties": {
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
+        "immutableStorageWithVersioning": {
+          "enabled": false
+        },
+        "publicAccess": "None"
+      },
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers"
+    },
+    {
+      "apiVersion": "2026-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_dietanalysisst2026_name'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_dietanalysisst2026_name'))]"
+      ],
+      "name": "[concat(parameters('storageAccounts_dietanalysisst2026_name'), '/default/azure-webjobs-secrets')]",
+      "properties": {
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
+        "immutableStorageWithVersioning": {
+          "enabled": false
+        },
+        "publicAccess": "None"
+      },
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers"
+    },
+    {
+      "apiVersion": "2026-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_dietanalysisst2026_name'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_dietanalysisst2026_name'))]"
+      ],
+      "name": "[concat(parameters('storageAccounts_dietanalysisst2026_name'), '/default/datasets')]",
+      "properties": {
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
+        "immutableStorageWithVersioning": {
+          "enabled": false
+        },
+        "publicAccess": "None"
+      },
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers"
+    },
+    {
+      "apiVersion": "2026-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_dietanalysisst2026_name'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_dietanalysisst2026_name'))]"
+      ],
+      "name": "[concat(parameters('storageAccounts_dietanalysisst2026_name'), '/default/scm-releases')]",
+      "properties": {
+        "defaultEncryptionScope": "$account-encryption-key",
+        "denyEncryptionScopeOverride": false,
+        "immutableStorageWithVersioning": {
+          "enabled": false
+        },
+        "publicAccess": "None"
+      },
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers"
+    },
+    {
+      "apiVersion": "2026-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/fileServices', parameters('storageAccounts_dietanalysisst2026_name'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_dietanalysisst2026_name'))]"
+      ],
+      "name": "[concat(parameters('storageAccounts_dietanalysisst2026_name'), '/default/diet-analysis-func-202653d53d71030b')]",
+      "properties": {
+        "accessTier": "TransactionOptimized",
+        "enabledProtocols": "SMB",
+        "shareQuota": 102400
+      },
+      "type": "Microsoft.Storage/storageAccounts/fileServices/shares"
+    }
+  ],
+  "variables": {}
+}

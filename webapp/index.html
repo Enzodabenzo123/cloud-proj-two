@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nutritional Insights Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fff9f0;
+    --panel:#ffffff;
+    --panel-border:#efe6d8;
+    --ink:#3a2e39;
+    --ink-dim:#8a7d8a;
+    --accent:#ff6b6b;
+    --accent-2:#ffb84d;
+    --accent-3:#4ecdc4;
+    --accent-4:#a78bfa;
+    --accent-5:#4d96ff;
+    --accent-6:#ff9ecf;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Quicksand', system-ui, sans-serif;
+  }
+  h1, h3{ font-family:'Baloo 2', 'Quicksand', system-ui, sans-serif; }
+  header{
+    padding:24px 32px;
+    border-bottom:4px dashed var(--panel-border);
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:12px;
+    background:linear-gradient(90deg, #fff0e0, #ffe6f0, #e6f7ff);
+  }
+  header h1{
+    margin:0;
+    font-size:2rem;
+    font-weight:800;
+    letter-spacing:0.01em;
+  }
+  header h1 span{
+    background:linear-gradient(90deg, var(--accent), var(--accent-5), var(--accent-3));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  header p{
+    margin:4px 0 0;
+    color:var(--ink-dim);
+    font-size:0.85rem;
+    font-weight:600;
+  }
+  main{
+    padding:24px 32px 48px;
+    max-width:1280px;
+    margin:0 auto;
+  }
+  .config-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    background:var(--panel);
+    border:2px solid var(--panel-border);
+    border-radius:var(--radius);
+    padding:12px 16px;
+    margin-bottom:20px;
+    box-shadow:0 3px 0 var(--panel-border);
+  }
+  .config-row label{ font-size:0.8rem; color:var(--ink-dim); font-weight:600; }
+  .config-row input[type=text]{
+    flex:1;
+    min-width:220px;
+    background:#fdf8ef;
+    border:2px solid var(--panel-border);
+    color:var(--ink);
+    padding:8px 10px;
+    border-radius:8px;
+    font-size:0.85rem;
+    font-family:inherit;
+  }
+  .meta-bar{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(160px,1fr));
+    gap:12px;
+    margin-bottom:24px;
+  }
+  .meta-card{
+    background:var(--panel);
+    border:2px solid var(--panel-border);
+    border-top:5px solid var(--card-accent, var(--accent));
+    border-radius:var(--radius);
+    padding:14px 16px;
+    box-shadow:0 3px 0 var(--panel-border);
+  }
+  .meta-card:nth-child(1){ --card-accent: var(--accent); }
+  .meta-card:nth-child(2){ --card-accent: var(--accent-5); }
+  .meta-card:nth-child(3){ --card-accent: var(--accent-4); }
+  .meta-card:nth-child(4){ --card-accent: var(--accent-3); }
+  .meta-card .label{
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--ink-dim);
+    font-weight:700;
+  }
+  .meta-card .value{
+    font-size:1.5rem;
+    font-weight:700;
+    margin-top:4px;
+    font-family:'Baloo 2', sans-serif;
+  }
+  .controls{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom:20px;
+  }
+  select, button{
+    font-family:inherit;
+    font-size:0.85rem;
+    font-weight:600;
+    border-radius:10px;
+    border:2px solid var(--panel-border);
+    padding:9px 14px;
+    background:#ffffff;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  button.primary{
+    background:linear-gradient(90deg, var(--accent), var(--accent-6));
+    color:#fff;
+    border:none;
+    font-weight:700;
+    box-shadow:0 3px 0 #c94f4f;
+  }
+  button.primary:hover{ filter:brightness(1.05); transform:translateY(1px); box-shadow:0 2px 0 #c94f4f; }
+  button:disabled{ opacity:0.5; cursor:not-allowed; }
+  .status{ font-size:0.8rem; color:var(--ink-dim); font-weight:600; }
+  .status.error{ color:var(--accent); }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(420px,1fr));
+    gap:18px;
+  }
+  .card{
+    background:var(--panel);
+    border:2px solid var(--panel-border);
+    border-top:6px solid var(--card-accent, var(--accent));
+    border-radius:var(--radius);
+    padding:18px;
+    box-shadow:0 4px 0 var(--panel-border);
+  }
+  .card:nth-child(1){ --card-accent: var(--accent); }
+  .card:nth-child(2){ --card-accent: var(--accent-5); }
+  .card:nth-child(3){ --card-accent: var(--accent-3); }
+  .card:nth-child(4){ --card-accent: var(--accent-4); }
+  .card h3{ margin:0 0 2px; font-size:1.15rem; font-weight:700; }
+  .card p.desc{ margin:0 0 12px; color:var(--ink-dim); font-size:0.8rem; font-weight:600; }
+  .card .chart-wrap{ position:relative; height:280px; }
+  footer{
+    text-align:center;
+    color:var(--ink-dim);
+    font-size:0.75rem;
+    font-weight:600;
+    padding:24px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Nutritional <span>Insights</span></h1>
+    <p>Diet analysis dashboard &middot; Azure Function backend</p>
+  </div>
+  <div class="status" id="statusLine">Not connected yet</div>
+</header>
+
+<main>
+
+  <div class="config-row">
+    <label for="endpointInput">Function endpoint:</label>
+    <input type="text" id="endpointInput" value="https://YOUR-FUNCTION-APP.azurewebsites.net/api/analyze" />
+    <button class="primary" id="connectBtn">Connect</button>
+  </div>
+
+  <div class="meta-bar">
+    <div class="meta-card">
+      <div class="label">Execution time</div>
+      <div class="value" id="metaExecTime">&mdash;</div>
+    </div>
+    <div class="meta-card">
+      <div class="label">Total recipes</div>
+      <div class="value" id="metaTotal">&mdash;</div>
+    </div>
+    <div class="meta-card">
+      <div class="label">Diet types</div>
+      <div class="value" id="metaDietCount">&mdash;</div>
+    </div>
+    <div class="meta-card">
+      <div class="label">Last refreshed</div>
+      <div class="value" id="metaTimestamp" style="font-size:0.95rem;">&mdash;</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label for="dietFilter" style="font-size:0.8rem;color:var(--ink-dim);">Filter by diet type:</label>
+    <select id="dietFilter">
+      <option value="all">All diet types</option>
+    </select>
+    <button class="primary" id="refreshBtn">Refresh data</button>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Average macronutrients by diet</h3>
+      <p class="desc">Protein, carbs, and fat (g) averaged per diet type</p>
+      <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <h3>Protein vs. carbs (top recipes)</h3>
+      <p class="desc">Top 5 highest-protein recipes per diet type</p>
+      <div class="chart-wrap"><canvas id="scatterChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <h3>Recipe distribution</h3>
+      <p class="desc">Share of total recipes by diet type</p>
+      <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <h3>Most common cuisine per diet</h3>
+      <p class="desc">The dominant cuisine type within each diet group</p>
+      <div class="chart-wrap"><canvas id="cuisineChart"></canvas></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const COLORS = ['#ff6b6b','#ffb84d','#4ecdc4','#4d96ff','#a78bfa','#ff9ecf','#95d5b2'];
+let rawData = null;
+let charts = {};
+
+const statusLine = document.getElementById('statusLine');
+const endpointInput = document.getElementById('endpointInput');
+const dietFilter = document.getElementById('dietFilter');
+
+function setStatus(msg, isError=false){
+  statusLine.textContent = msg;
+  statusLine.className = 'status' + (isError ? ' error' : '');
+}
+
+async function fetchData(){
+  const url = endpointInput.value.trim();
+  if(!url || url.includes('YOUR-FUNCTION-APP')){
+    setStatus('Set your deployed Azure Function URL above, then click Connect.', true);
+    return;
+  }
+  setStatus('Fetching...');
+  document.getElementById('refreshBtn').disabled = true;
+  try{
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    rawData = await res.json();
+    if(rawData.error) throw new Error(rawData.error);
+    populateFilter(rawData);
+    renderAll(rawData);
+    updateMeta(rawData);
+    setStatus('Connected \u2014 data loaded successfully');
+  }catch(err){
+    setStatus('Failed to fetch: ' + err.message, true);
+  }finally{
+    document.getElementById('refreshBtn').disabled = false;
+  }
+}
+
+function populateFilter(data){
+  const diets = (data.avg_macros_by_diet || []).map(d => d.Diet_type);
+  dietFilter.innerHTML = '<option value="all">All diet types</option>' +
+    diets.map(d => `<option value="${d}">${d}</option>`).join('');
+}
+
+function updateMeta(data){
+  document.getElementById('metaExecTime').textContent =
+    (data.execution_time_seconds != null) ? data.execution_time_seconds.toFixed(3) + 's' : '\u2014';
+  document.getElementById('metaTotal').textContent = data.total_recipes ?? '\u2014';
+  document.getElementById('metaDietCount').textContent =
+    data.avg_macros_by_diet ? data.avg_macros_by_diet.length : '\u2014';
+  document.getElementById('metaTimestamp').textContent = new Date().toLocaleTimeString();
+}
+
+function filteredDiets(data){
+  const sel = dietFilter.value;
+  if(sel === 'all') return data.avg_macros_by_diet || [];
+  return (data.avg_macros_by_diet || []).filter(d => d.Diet_type === sel);
+}
+
+function destroy(id){ if(charts[id]){ charts[id].destroy(); } }
+
+function renderBar(data){
+  destroy('bar');
+  const rows = filteredDiets(data);
+  const ctx = document.getElementById('barChart');
+  charts.bar = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: rows.map(r => r.Diet_type),
+      datasets:[
+        {label:'Protein (g)', data: rows.map(r => r['Protein(g)']), backgroundColor: COLORS[0]},
+        {label:'Carbs (g)', data: rows.map(r => r['Carbs(g)']), backgroundColor: COLORS[1]},
+        {label:'Fat (g)', data: rows.map(r => r['Fat(g)']), backgroundColor: COLORS[2]},
+      ]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#3a2e39' } } },
+      scales:{
+        x:{ ticks:{ color:'#8a7d8a' }, grid:{ color:'#efe6d8' } },
+        y:{ ticks:{ color:'#8a7d8a' }, grid:{ color:'#efe6d8' } }
+      }
+    }
+  });
+}
+
+function renderScatter(data){
+  destroy('scatter');
+  const sel = dietFilter.value;
+  let recipes = data.top_protein_recipes || [];
+  if(sel !== 'all') recipes = recipes.filter(r => r.Diet_type === sel);
+
+  const byDiet = {};
+  recipes.forEach(r => {
+    if(!byDiet[r.Diet_type]) byDiet[r.Diet_type] = [];
+    byDiet[r.Diet_type].push({x: r['Carbs(g)'], y: r['Protein(g)']});
+  });
+
+  const datasets = Object.keys(byDiet).map((diet, i) => ({
+    label: diet,
+    data: byDiet[diet],
+    backgroundColor: COLORS[i % COLORS.length]
+  }));
+
+  const ctx = document.getElementById('scatterChart');
+  charts.scatter = new Chart(ctx, {
+    type:'scatter',
+    data:{ datasets },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#3a2e39' } } },
+      scales:{
+        x:{ title:{ display:true, text:'Carbs (g)', color:'#8a7d8a' }, ticks:{ color:'#8a7d8a' }, grid:{ color:'#efe6d8' } },
+        y:{ title:{ display:true, text:'Protein (g)', color:'#8a7d8a' }, ticks:{ color:'#8a7d8a' }, grid:{ color:'#efe6d8' } }
+      }
+    }
+  });
+}
+
+function renderPie(data){
+  destroy('pie');
+  const dist = data.diet_distribution || {};
+  let labels = Object.keys(dist);
+  let values = Object.values(dist);
+  const sel = dietFilter.value;
+  if(sel !== 'all'){
+    labels = labels.filter(l => l === sel);
+    values = labels.map(l => dist[l]);
+  }
+  const ctx = document.getElementById('pieChart');
+  charts.pie = new Chart(ctx, {
+    type:'pie',
+    data:{
+      labels,
+      datasets:[{ data: values, backgroundColor: labels.map((_,i)=>COLORS[i % COLORS.length]) }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'bottom', labels:{ color:'#3a2e39' } } }
+    }
+  });
+}
+
+function renderCuisine(data){
+  destroy('cuisine');
+  const cuisines = data.most_common_cuisines || {};
+  let labels = Object.keys(cuisines);
+  const sel = dietFilter.value;
+  if(sel !== 'all') labels = labels.filter(l => l === sel);
+  const values = labels.map(l => 1);
+  const ctx = document.getElementById('cuisineChart');
+  charts.cuisine = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        label:'Top cuisine',
+        data: values,
+        backgroundColor: labels.map((_,i)=>COLORS[i % COLORS.length]),
+      }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label: (ctx) => cuisines[ctx.label] } }
+      },
+      scales:{
+        x:{ display:false },
+        y:{ ticks:{ color:'#8a7d8a', callback: (val, idx) => `${labels[idx]}: ${cuisines[labels[idx]]}` }, grid:{ color:'#efe6d8' } }
+      }
+    }
+  });
+}
+
+function renderAll(data){
+  renderBar(data);
+  renderScatter(data);
+  renderPie(data);
+  renderCuisine(data);
+}
+
+document.getElementById('connectBtn').addEventListener('click', fetchData);
+document.getElementById('refreshBtn').addEventListener('click', fetchData);
+dietFilter.addEventListener('change', () => { if(rawData) renderAll(rawData); updateMeta(rawData); });
+</script>
+
+</body>
+</html>

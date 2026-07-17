@@ -1,0 +1,31 @@
+# --- Secrets: never commit these ---
+# local.settings.json holds live connection strings when running the function
+# locally. The cloud deployment gets its connection string from an Azure app
+# setting (set by respin.ps1), so this file is never needed in the repo.
+local.settings.json
+projtwo/local.settings.json
+**/local.settings.json
+
+# --- Python ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# --- Azure Functions Core Tools ---
+bin/
+obj/
+.python_packages/
+
+# --- Static Web Apps CLI ---
+.deployment/
+swa-cli.config.json
+
+# --- Editor / OS noise ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
