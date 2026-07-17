@@ -114,9 +114,9 @@ set at the top of the script — bump the suffix letter if a name is ever taken.
 
 ## Team
 
-- **Person 1 — Backend / Azure:** Function app, blob storage, connection-string
+- Julia — Backend / Azure:** Function app, blob storage, connection-string
   configuration, endpoint testing.
-- **Person 2 — Frontend / Dashboard:** Dashboard UI, charts, filter/refresh
+- Kaley — Frontend / Dashboard:** Dashboard UI, charts, filter/refresh
   controls, Static Web App deployment, respin script.
-- **Person 3 — Integration / Documentation:** End-to-end integration, GitHub
+- Enzo -  Integration / Documentation:** Altered respin script, End-to-end integration, GitHub
   repository, documentation PDF.
