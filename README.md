@@ -1,122 +1,100 @@
-# Diet Analysis Cloud Dashboard — Project Phase 2
+# Person C — recipes search/filter/pagination API
 
-A serverless cloud dashboard that analyses a recipe/diet dataset. An Azure
-Function reads the dataset from Azure Blob Storage, cleans it, computes
-per-diet nutritional statistics, and returns JSON. A static web dashboard
-fetches that JSON and renders it as interactive charts.
+This is the piece from `PHASE3_PERSON_C_CONTEXT.md`, item 1: a new Azure
+Function that reads Person A's cleaned CSV and serves search, filter, and
+pagination to your dashboard.
 
-## Architecture
+## Files
 
-```
-                    +---------------------------+
-  Browser  ───────► |  Azure Static Web App     |   (dashboard: index.html)
-                    |  diet-dashboard-swa-e     |
-                    +------------+--------------+
-                                 │ fetch() GET /api/analyze
-                                 ▼
-                    +---------------------------+
-                    |  Azure Function (Python)  |   HTTP trigger, anonymous
-                    |  diet-analysis-func-2026e |
-                    +------------+--------------+
-                                 │ reads blob
-                                 ▼
-                    +---------------------------+
-                    |  Azure Blob Storage       |   container: datasets
-                    |  dietanalysisst2026e      |   blob: All_Diets.csv
-                    +---------------------------+
-```
+| File | Purpose |
+|---|---|
+| `function_app.py` | The two endpoints: `/api/recipes` (search/filter/pagination) and `/api/diet-types` (for populating the filter dropdown) |
+| `requirements.txt` | Python dependencies |
+| `host.json` | Standard Functions runtime config |
+| `local.settings.json.example` | Copy to `local.settings.json` for local testing — never commit the real one |
+| `deploy-recipes-api.ps1` | Provisions the Azure infra and deploys this code, in one run |
 
-All resources live in the resource group **diet-analysis-rg** (Central US).
+## One thing you need before running the script
 
-## Repository structure
+**A connection string that can read Person A's `results` container.** Their
+storage account is under their own subscription, so you can't use your own
+credentials to reach it. Ask Person A for one of these (in order of
+preference):
 
-```
-.
-├── respin.ps1                    # One-shot: provisions Azure + deploys both halves
-├── README.md
-├── .gitignore
-├── projtwo/                      # Backend (Azure Function)
-│   ├── function_app.py           # analyze endpoint: reads CSV, computes stats, returns JSON
-│   ├── host.json
-│   ├── requirements.txt
-│   ├── .funcignore
-│   └── local.settings.json.example
-├── webapp/                       # Frontend (static dashboard)
-│   └── index.html                # Chart.js dashboard, 4 visualizations + filter + refresh
-├── data/
-│   └── All_Diets.csv             # Source dataset (~7,800 recipes, 5 diet types)
-└── infra/
-    └── arm-template.json         # Reference: portal export of the backend (NOT the deploy method)
-```
+1. **Best — a container-scoped SAS token**, read-only, on just the `results`
+   container. They generate it with something like:
+   ```
+   az storage container generate-sas \
+     --account-name dietanalysisst2026 \
+     --name results \
+     --permissions r \
+     --expiry 2026-12-31 \
+     --output tsv
+   ```
+   Then build the connection-string-style value for your app setting, or use
+   the blob SDK's `BlobServiceClient(account_url, credential=sas_token)`
+   pattern instead of `from_connection_string` if they hand you a bare SAS.
+2. **Simpler but broader — their full storage account connection string.**
+   Works fine for a class project, just means you technically have write
+   access to their whole account too. Fine to use if you trust the
+   handoff and want to move fast.
 
-## What the function returns
+Whichever you get, that's the value for `PERSON_A_STORAGE_CONNECTION_STRING`.
 
-`GET /api/analyze` responds with JSON containing:
-
-- `execution_time_seconds` — server-side processing time (dashboard metadata)
-- `total_recipes` — row count after cleaning
-- `avg_macros_by_diet` — mean protein/carbs/fat per diet type
-- `top_protein_recipes` — top 5 highest-protein recipes per diet type
-- `most_common_cuisines` — dominant cuisine per diet type
-- `diet_distribution` — recipe count per diet type
-
-The dashboard renders these as a grouped bar chart, a protein-vs-carbs scatter,
-a distribution pie, and a per-diet cuisine chart, plus a diet-type filter and a
-refresh button.
-
-## Deploying (respin)
-
-The resource group is deleted between sessions to save cost. To bring the whole
-stack back up, run the respin script from the repo root.
-
-**One-time prerequisites:**
+## Running it
 
 ```powershell
-az login
-npm install -g azure-functions-core-tools@4
-npm install -g @azure/static-web-apps-cli
+./deploy-recipes-api.ps1 -PersonAConnectionString "<the connection string from Person A>"
 ```
 
-**Then:**
+That single command:
+1. Logs you into Azure if you aren't already
+2. Creates a resource group, a storage account (for the Functions runtime
+   itself — not the data), and a Python Function App on a Consumption plan
+3. Sets the connection string as an app setting
+4. Turns on CORS for all origins, same as Person A and B's setup
+5. Publishes `function_app.py` to it
+6. Prints your live API URL and two example requests to try
 
+Optional parameters if you want control over naming/region:
 ```powershell
-cd <repo root>
-.\respin.ps1
+./deploy-recipes-api.ps1 `
+  -PersonAConnectionString "<...>" `
+  -ResourceGroup "my-custom-rg" `
+  -Location "canadacentral" `
+  -FunctionAppName "my-recipes-api-2026"
 ```
 
-The script provisions the resource group, storage account, dataset container,
-uploads the CSV, creates and deploys the Function App, sets the storage
-connection string as an app setting, then creates the Static Web App and
-deploys the dashboard. It prints both live URLs at the end.
+## Tearing it down between sessions
 
-Paths are resolved relative to the script's own location, so the repo can be
-cloned anywhere. The two globally-unique names (`$STORAGE`, `$FUNCTIONAPP`) are
-set at the top of the script — bump the suffix letter if a name is ever taken.
+Same idea as the team's `respin.ps1` — delete the resource group when you're
+not actively working, to save cost:
+```powershell
+./deploy-recipes-api.ps1 -PersonAConnectionString "x" -Teardown
+```
+Note: if you don't pin `-FunctionAppName`, re-running the script afterward
+generates a new random name and therefore a new URL. If that happens, update
+your dashboard's config and let Person B know if you'd already sent them a
+URL for `FRONTEND_URL`.
 
-## Using the dashboard
+## Testing locally before deploying
 
-1. Open the Static Web App URL printed by respin.
-2. Paste the Function URL (`https://diet-analysis-func-2026e.azurewebsites.net/api/analyze`)
-   into the endpoint field.
-3. Click **Connect**. Use the diet-type filter and **Refresh** to interact.
+```bash
+python -m venv .venv
+source .venv/bin/activate   # or .venv\Scripts\activate on Windows
+pip install -r requirements.txt
+cp local.settings.json.example local.settings.json
+# edit local.settings.json with your real PERSON_A_STORAGE_CONNECTION_STRING
+func start
+```
+Then hit `http://localhost:7071/api/recipes?diet_type=paleo&page=1`.
 
-## Notes on cloud practices
+## After it's deployed
 
-- The storage connection string is injected as an Azure **app setting**, never
-  committed. `local.settings.json` is git-ignored; a `.example` template is
-  provided for local runs.
-- The Function uses an anonymous HTTP trigger for coursework simplicity and
-  returns an `Access-Control-Allow-Origin` header so the browser dashboard can
-  call it cross-origin without extra CORS configuration.
-- `infra/arm-template.json` is a portal export kept for documentation of the
-  deployed backend. It is **not** run to deploy; `respin.ps1` is the deployment
-  method.
+Point your dashboard's fetch calls at the printed URL, e.g.:
+```js
+fetch(`${YOUR_RECIPES_API_URL}/api/recipes?diet_type=${diet}&keyword=${q}&page=${page}`)
+```
 
-## Team
-
-- Julia — Backend / Azure:** Function app, blob storage, connection-string
-  configuration, endpoint testing.
-- Kaley — Frontend / Dashboard:** Dashboard UI, charts, filter/refresh
-  controls, Static Web App deployment, respin script.
-- Enzo -  Integration / Documentation:** Altered respin script, End-to-end integration, GitHub
-  repository, documentation PDF.
+This does **not** replace sending Person B your dashboard's URL — that's a
+separate, still-outstanding item from the context doc.

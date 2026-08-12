@@ -1,4 +1,5 @@
 # --- Secrets: never commit these ---
+# ! DEMO: connection strings/credentials never enter the repo — excluded here, injected as Azure app settings at deploy time
 # local.settings.json holds live connection strings when running the function
 # locally. The cloud deployment gets its connection string from an Azure app
 # setting (set by respin.ps1), so this file is never needed in the repo.
@@ -29,3 +30,7 @@ swa-cli.config.json
 .DS_Store
 Thumbs.db
 *.log
+
+# --- Course deliverables (large binaries, not source) ---
+*.mp4
+*.pdf

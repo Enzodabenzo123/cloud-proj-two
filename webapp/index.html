@@ -174,6 +174,68 @@
     font-weight:600;
     padding:24px;
   }
+  .user-badge{
+    display:none;
+    align-items:center;
+    gap:10px;
+    font-size:0.85rem;
+    font-weight:700;
+  }
+  .user-badge button{ padding:6px 12px; font-size:0.78rem; }
+  .login-overlay{
+    display:flex;
+    min-height:calc(100vh - 100px);
+    align-items:center;
+    justify-content:center;
+    padding:32px;
+  }
+  .login-card{
+    background:var(--panel);
+    border:2px solid var(--panel-border);
+    border-radius:var(--radius);
+    padding:28px 30px;
+    width:100%;
+    max-width:360px;
+    box-shadow:0 4px 0 var(--panel-border);
+  }
+  .login-card h2{ margin:0 0 4px; font-family:'Baloo 2', sans-serif; font-size:1.4rem; }
+  .login-card p.sub{ margin:0 0 18px; color:var(--ink-dim); font-size:0.8rem; font-weight:600; }
+  .login-card label{ display:block; font-size:0.78rem; color:var(--ink-dim); font-weight:700; margin:12px 0 4px; }
+  .login-card input[type=text], .login-card input[type=email], .login-card input[type=password]{
+    width:100%;
+    background:#fdf8ef;
+    border:2px solid var(--panel-border);
+    color:var(--ink);
+    padding:9px 10px;
+    border-radius:8px;
+    font-size:0.85rem;
+    font-family:inherit;
+  }
+  .login-card button.primary{ width:100%; margin-top:18px; padding:10px; }
+  .login-card .switcher{
+    margin-top:14px;
+    text-align:center;
+    font-size:0.8rem;
+    font-weight:600;
+  }
+  .login-card .switcher a{ color:var(--accent-5); cursor:pointer; text-decoration:underline; }
+  .login-card .divider{
+    display:flex; align-items:center; gap:10px;
+    margin:16px 0; color:var(--ink-dim); font-size:0.72rem; font-weight:700;
+  }
+  .login-card .divider::before, .login-card .divider::after{ content:''; flex:1; border-top:2px dashed var(--panel-border); }
+  .login-card .github-btn{
+    width:100%; background:#24292e; color:#fff; border:none; padding:10px; font-weight:700;
+  }
+  .table-wrap{ overflow-x:auto; }
+  table.recipes-table{ width:100%; border-collapse:collapse; font-size:0.82rem; }
+  table.recipes-table th, table.recipes-table td{
+    text-align:left; padding:8px 10px; border-bottom:1px solid var(--panel-border);
+  }
+  table.recipes-table th{ color:var(--ink-dim); text-transform:uppercase; font-size:0.68rem; letter-spacing:0.05em; }
+  .pagination{ display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap; }
+  .pagination span{ font-size:0.8rem; color:var(--ink-dim); font-weight:600; }
+  .full-card{ grid-column:1 / -1; }
 </style>
 </head>
 <body>
@@ -183,15 +245,53 @@
     <h1>Nutritional <span>Insights</span></h1>
     <p>Diet analysis dashboard &middot; Azure Function backend</p>
   </div>
-  <div class="status" id="statusLine">Not connected yet</div>
+  <div style="display:flex; align-items:center; gap:16px;">
+    <div class="status" id="statusLine">Not connected yet</div>
+    <div class="user-badge" id="userBadge">
+      <span id="userName"></span>
+      <button id="logoutBtn">Log out</button>
+    </div>
+  </div>
 </header>
 
-<main>
+<div class="login-overlay" id="loginScreen">
+  <div class="login-card">
+    <h2 id="loginTitle">Welcome back</h2>
+    <p class="sub" id="loginSub">Log in to view the dashboard</p>
+    <div class="status" id="loginStatus" style="min-height:16px;"></div>
+
+    <label for="loginName" id="loginNameLabel" style="display:none;">Name</label>
+    <input type="text" id="loginName" style="display:none;" placeholder="Jane Doe" />
+
+    <label for="loginEmail">Email</label>
+    <input type="email" id="loginEmail" placeholder="you@example.com" />
+
+    <label for="loginPassword">Password</label>
+    <input type="password" id="loginPassword" placeholder="At least 8 characters" />
+
+    <button class="primary" id="loginSubmitBtn">Log in</button>
+
+    <div class="switcher">
+      <span id="switcherText">Need an account?</span> <a id="switcherLink">Register</a>
+    </div>
+
+    <div class="divider">OR</div>
+    <button class="github-btn" id="githubBtn">Login with GitHub</button>
+  </div>
+</div>
+
+<main id="dashboardMain" style="display:none;">
 
   <div class="config-row">
-    <label for="endpointInput">Function endpoint:</label>
-    <input type="text" id="endpointInput" value="https://YOUR-FUNCTION-APP.azurewebsites.net/api/analyze" />
+    <label for="endpointInput">Analysis endpoint:</label>
+    <input type="text" id="endpointInput" value="https://diet-analysis-func-2026.azurewebsites.net/api/analyze" />
     <button class="primary" id="connectBtn">Connect</button>
+  </div>
+
+  <div class="config-row">
+    <label for="recipesEndpointInput">Recipes search endpoint:</label>
+    <input type="text" id="recipesEndpointInput" value="https://YOUR-RECIPES-API.azurewebsites.net" />
+    <button class="primary" id="recipesConnectBtn">Connect</button>
   </div>
 
   <div class="meta-bar">
@@ -244,6 +344,32 @@
       <h3>Most common cuisine per diet</h3>
       <p class="desc">The dominant cuisine type within each diet group</p>
       <div class="chart-wrap"><canvas id="cuisineChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card full-card" style="margin-top:18px;">
+    <h3>Search recipes</h3>
+    <p class="desc">Search and filter Person A's cleaned recipe data, server-side</p>
+    <div class="controls">
+      <input type="text" id="recipeKeyword" placeholder="Search recipe name or cuisine..." style="flex:1; min-width:220px; background:#fdf8ef; border:2px solid var(--panel-border); color:var(--ink); padding:9px 10px; border-radius:8px; font-size:0.85rem; font-family:inherit;" />
+      <select id="recipeDietFilter">
+        <option value="all">All diet types</option>
+      </select>
+      <button class="primary" id="recipeSearchBtn">Search</button>
+    </div>
+    <div class="status" id="recipeStatus"></div>
+    <div class="table-wrap">
+      <table class="recipes-table">
+        <thead>
+          <tr><th>Recipe</th><th>Diet type</th><th>Cuisine</th><th>Protein (g)</th><th>Carbs (g)</th><th>Fat (g)</th></tr>
+        </thead>
+        <tbody id="recipesTableBody"></tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <button id="recipePrevBtn">&larr; Prev</button>
+      <span id="recipePageLabel">&mdash;</span>
+      <button id="recipeNextBtn">Next &rarr;</button>
     </div>
   </div>
 
@@ -430,6 +556,213 @@ function renderAll(data){
 document.getElementById('connectBtn').addEventListener('click', fetchData);
 document.getElementById('refreshBtn').addEventListener('click', fetchData);
 dietFilter.addEventListener('change', () => { if(rawData) renderAll(rawData); updateMeta(rawData); });
+
+// --- Auth (Person B's live Function App — do not redeploy, only integrate) ---
+const AUTH_BASE_URL = 'https://diet-analysis-auth-func-2026.azurewebsites.net';
+let authMode = 'login'; // 'login' | 'register'
+
+function getToken(){ return localStorage.getItem('authToken'); }
+function saveToken(t){ localStorage.setItem('authToken', t); }
+function clearToken(){ localStorage.removeItem('authToken'); }
+
+function setLoginStatus(msg, isError=false){
+  const el = document.getElementById('loginStatus');
+  el.textContent = msg || '';
+  el.className = 'status' + (isError ? ' error' : '');
+}
+
+function showLoginScreen(){
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('dashboardMain').style.display = 'none';
+  document.getElementById('userBadge').style.display = 'none';
+}
+
+function showDashboardScreen(user){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dashboardMain').style.display = 'block';
+  document.getElementById('userBadge').style.display = 'flex';
+  // ! DEMO: logged-in user's name, straight from /api/me, shown top-right
+  document.getElementById('userName').textContent = 'Hi, ' + user.name;
+}
+
+function setAuthMode(mode){
+  authMode = mode;
+  const isRegister = mode === 'register';
+  document.getElementById('loginTitle').textContent = isRegister ? 'Create an account' : 'Welcome back';
+  document.getElementById('loginSub').textContent = isRegister ? 'Register to view the dashboard' : 'Log in to view the dashboard';
+  document.getElementById('loginNameLabel').style.display = isRegister ? 'block' : 'none';
+  document.getElementById('loginName').style.display = isRegister ? 'block' : 'none';
+  document.getElementById('loginSubmitBtn').textContent = isRegister ? 'Register' : 'Log in';
+  document.getElementById('switcherText').textContent = isRegister ? 'Already have an account?' : 'Need an account?';
+  document.getElementById('switcherLink').textContent = isRegister ? 'Log in' : 'Register';
+  setLoginStatus('');
+}
+
+async function handleAuthSubmit(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const name = document.getElementById('loginName').value.trim();
+
+  if(!email || !password){ setLoginStatus('Email and password are required.', true); return; }
+  if(authMode === 'register' && !name){ setLoginStatus('Name is required to register.', true); return; }
+
+  const path = authMode === 'register' ? '/api/register' : '/api/login';
+  const body = authMode === 'register' ? { email, password, name } : { email, password };
+
+  setLoginStatus(authMode === 'register' ? 'Registering...' : 'Logging in...');
+  try{
+    const res = await fetch(AUTH_BASE_URL + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    saveToken(data.token);
+    showDashboardScreen(data);
+  }catch(err){
+    setLoginStatus('Failed: ' + err.message, true);
+  }
+}
+
+async function handleLogout(){
+  const token = getToken();
+  try{
+    await fetch(AUTH_BASE_URL + '/api/logout', {
+      method: 'POST',
+      headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+    });
+  }catch(err){ /* logout is best-effort client-side regardless */ }
+  // ! DEMO: token is actually deleted from storage, not just hidden in the UI
+  clearToken();
+  showLoginScreen();
+  setAuthMode('login');
+}
+
+// ! DEMO: picks the JWT off the #token= redirect from GitHub OAuth and stores it
+function consumeGithubTokenFromHash(){
+  const hash = window.location.hash;
+  if(hash.startsWith('#token=')){
+    saveToken(hash.substring('#token='.length));
+    window.location.hash = '';
+  }
+}
+
+async function checkAuth(){
+  consumeGithubTokenFromHash();
+  const token = getToken();
+  if(!token){ showLoginScreen(); return; }
+  try{
+    // ! DEMO: dashboard is gated behind a live token check, not just a client-side flag
+    const res = await fetch(AUTH_BASE_URL + '/api/me', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if(!res.ok) throw new Error('invalid session');
+    const user = await res.json();
+    showDashboardScreen(user);
+  }catch(err){
+    clearToken();
+    showLoginScreen();
+  }
+}
+
+document.getElementById('loginSubmitBtn').addEventListener('click', handleAuthSubmit);
+document.getElementById('loginPassword').addEventListener('keydown', e => { if(e.key === 'Enter') handleAuthSubmit(); });
+document.getElementById('switcherLink').addEventListener('click', () => setAuthMode(authMode === 'register' ? 'login' : 'register'));
+document.getElementById('githubBtn').addEventListener('click', () => {
+  window.location.href = AUTH_BASE_URL + '/api/auth/github/login';
+});
+document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+
+checkAuth();
+
+// --- Recipe search (Person C's own endpoint) ---
+let recipePage = 1;
+let recipeTotalPages = 1;
+const RECIPE_PAGE_SIZE = 20;
+
+function recipesBaseUrl(){
+  return document.getElementById('recipesEndpointInput').value.trim().replace(/\/+$/, '');
+}
+
+function setRecipeStatus(msg, isError=false){
+  const el = document.getElementById('recipeStatus');
+  el.textContent = msg || '';
+  el.className = 'status' + (isError ? ' error' : '');
+}
+
+async function loadDietTypesForSearch(){
+  const base = recipesBaseUrl();
+  try{
+    const res = await fetch(base + '/api/diet-types');
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const sel = document.getElementById('recipeDietFilter');
+    sel.innerHTML = '<option value="all">All diet types</option>' +
+      (data.diet_types || []).map(d => `<option value="${d}">${d}</option>`).join('');
+  }catch(err){
+    // Non-fatal — the search box still works without a populated dropdown.
+  }
+}
+
+function renderRecipesTable(data){
+  const tbody = document.getElementById('recipesTableBody');
+  tbody.innerHTML = (data.recipes || []).map(r => `
+    <tr>
+      <td>${r.Recipe_name ?? ''}</td>
+      <td>${r.Diet_type ?? ''}</td>
+      <td>${r.Cuisine_type ?? ''}</td>
+      <td>${r['Protein(g)'] ?? ''}</td>
+      <td>${r['Carbs(g)'] ?? ''}</td>
+      <td>${r['Fat(g)'] ?? ''}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" style="color:var(--ink-dim);">No results</td></tr>';
+
+  document.getElementById('recipePageLabel').textContent = `Page ${data.page} of ${data.total_pages} (${data.total_results} results)`;
+  document.getElementById('recipePrevBtn').disabled = data.page <= 1;
+  document.getElementById('recipeNextBtn').disabled = data.page >= data.total_pages;
+}
+
+async function searchRecipes(page = 1){
+  const base = recipesBaseUrl();
+  if(!base || base.includes('YOUR-RECIPES-API')){
+    setRecipeStatus('Set your deployed recipes API URL above, then click Connect.', true);
+    return;
+  }
+  const keyword = document.getElementById('recipeKeyword').value.trim();
+  const diet = document.getElementById('recipeDietFilter').value;
+
+  const params = new URLSearchParams();
+  if(keyword) params.set('keyword', keyword);
+  if(diet && diet !== 'all') params.set('diet_type', diet);
+  params.set('page', page);
+  params.set('page_size', RECIPE_PAGE_SIZE);
+
+  setRecipeStatus('Searching...');
+  try{
+    // ? DEMO: real fetch against the live /api/recipes endpoint with real query params
+    const res = await fetch(`${base}/api/recipes?${params.toString()}`);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    recipePage = data.page;
+    recipeTotalPages = data.total_pages;
+    renderRecipesTable(data);
+    setRecipeStatus('');
+  }catch(err){
+    setRecipeStatus('Failed to fetch: ' + err.message, true);
+  }
+}
+
+document.getElementById('recipesConnectBtn').addEventListener('click', async () => {
+  await loadDietTypesForSearch();
+  searchRecipes(1);
+});
+document.getElementById('recipeSearchBtn').addEventListener('click', () => searchRecipes(1));
+document.getElementById('recipeKeyword').addEventListener('keydown', e => { if(e.key === 'Enter') searchRecipes(1); });
+document.getElementById('recipeDietFilter').addEventListener('change', () => searchRecipes(1));
+document.getElementById('recipePrevBtn').addEventListener('click', () => { if(recipePage > 1) searchRecipes(recipePage - 1); });
+document.getElementById('recipeNextBtn').addEventListener('click', () => { if(recipePage < recipeTotalPages) searchRecipes(recipePage + 1); });
 </script>
 
 </body>
