@@ -44,7 +44,7 @@ Whichever you get, that's the value for `PERSON_A_STORAGE_CONNECTION_STRING`.
 ## Running it
 
 ```powershell
-./deploy-recipes-api.ps1 -PersonAConnectionString "<the connection string from Person A>"
+./deployment/deploy-recipes-api.ps1 -PersonAConnectionString "<the connection string from Person A>"
 ```
 
 That single command:
@@ -58,7 +58,7 @@ That single command:
 
 Optional parameters if you want control over naming/region:
 ```powershell
-./deploy-recipes-api.ps1 `
+./deployment/deploy-recipes-api.ps1 `
   -PersonAConnectionString "<...>" `
   -ResourceGroup "my-custom-rg" `
   -Location "canadacentral" `
@@ -70,7 +70,7 @@ Optional parameters if you want control over naming/region:
 Same idea as the team's `respin.ps1` — delete the resource group when you're
 not actively working, to save cost:
 ```powershell
-./deploy-recipes-api.ps1 -PersonAConnectionString "x" -Teardown
+./deployment/deploy-recipes-api.ps1 -PersonAConnectionString "x" -Teardown
 ```
 Note: if you don't pin `-FunctionAppName`, re-running the script afterward
 generates a new random name and therefore a new URL. If that happens, update
