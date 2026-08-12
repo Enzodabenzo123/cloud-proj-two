@@ -73,8 +73,8 @@ def recipes(req: func.HttpRequest) -> func.HttpResponse:
         if keyword:
             kw = keyword.lower()
             mask = (
-                filtered["Recipe_name"].str.lower().str.contains(kw, na=False)
-                | filtered["Cuisine_type"].str.lower().str.contains(kw, na=False)
+                filtered["Recipe_name"].str.lower().str.contains(kw, na=False, regex=False)
+                | filtered["Cuisine_type"].str.lower().str.contains(kw, na=False, regex=False)
             )
             filtered = filtered[mask]
 

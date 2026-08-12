@@ -707,16 +707,29 @@ async function loadDietTypesForSearch(){
 
 function renderRecipesTable(data){
   const tbody = document.getElementById('recipesTableBody');
-  tbody.innerHTML = (data.recipes || []).map(r => `
-    <tr>
-      <td>${r.Recipe_name ?? ''}</td>
-      <td>${r.Diet_type ?? ''}</td>
-      <td>${r.Cuisine_type ?? ''}</td>
-      <td>${r['Protein(g)'] ?? ''}</td>
-      <td>${r['Carbs(g)'] ?? ''}</td>
-      <td>${r['Fat(g)'] ?? ''}</td>
-    </tr>
-  `).join('') || '<tr><td colspan="6" style="color:var(--ink-dim);">No results</td></tr>';
+  tbody.innerHTML = '';
+  const recipes = data.recipes || [];
+
+  if(recipes.length === 0){
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 6;
+    td.style.color = 'var(--ink-dim)';
+    td.textContent = 'No results';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+  } else {
+    const cols = ['Recipe_name', 'Diet_type', 'Cuisine_type', 'Protein(g)', 'Carbs(g)', 'Fat(g)'];
+    recipes.forEach(r => {
+      const tr = document.createElement('tr');
+      cols.forEach(col => {
+        const td = document.createElement('td');
+        td.textContent = r[col] ?? '';
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
 
   document.getElementById('recipePageLabel').textContent = `Page ${data.page} of ${data.total_pages} (${data.total_results} results)`;
   document.getElementById('recipePrevBtn').disabled = data.page <= 1;
