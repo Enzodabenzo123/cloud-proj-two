@@ -709,6 +709,9 @@ function renderRecipesTable(data){
   const tbody = document.getElementById('recipesTableBody');
   tbody.innerHTML = '';
   const recipes = data.recipes || [];
+  // ! DEMO: recipe fields are set via textContent below, not innerHTML — recipe
+  // data renders as plain text even if it contained markup, instead of being
+  // parsed as HTML
 
   if(recipes.length === 0){
     const tr = document.createElement('tr');

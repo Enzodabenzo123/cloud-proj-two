@@ -70,6 +70,9 @@ def recipes(req: func.HttpRequest) -> func.HttpResponse:
             filtered = filtered[filtered["Diet_type"].str.lower() == diet_type.lower()]
 
         # ? DEMO: keyword search across recipe name and cuisine type
+        # ! DEMO: regex=False — treats input as a literal string, not a regex. Without
+        # this, a keyword like "chicken(" (a completely normal search) crashes the
+        # endpoint with a 500 from an unterminated-subpattern error.
         if keyword:
             kw = keyword.lower()
             mask = (

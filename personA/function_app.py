@@ -60,6 +60,8 @@ def run_analysis(df: pd.DataFrame) -> dict:
     return result, df
 
 
+# * DEMO: fires automatically when the raw CSV changes — cleaning + caching happen
+# as a background pipeline, not on the request path
 @app.blob_trigger(arg_name="myblob", path=f"{CONTAINER_NAME}/{BLOB_NAME}",
                    connection="STORAGE_CONNECTION_STRING")
 def DietDataProcessor(myblob: func.InputStream):
@@ -93,6 +95,8 @@ def analyze(req: func.HttpRequest) -> func.HttpResponse:
     try:
         cached = redis_client.get(CACHE_KEY)
 
+        # * DEMO: fast path — serves the precomputed result straight from Redis,
+        # skipping the blob read + full recompute below entirely
         if cached:
             result = json.loads(cached)
             result["source"] = "cache"
