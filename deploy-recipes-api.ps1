@@ -8,7 +8,7 @@
   deleted between sessions to save cost) to bring it back up.
 
   Creates a resource group, a storage account (required by the Functions
-  runtime itself — separate from Person A's data storage), and a Python
+  runtime itself - separate from Person A's data storage), and a Python
   Function App on a Consumption plan, then publishes function_app.py to it.
 
 .PREREQUISITES
@@ -44,7 +44,7 @@ $ErrorActionPreference = "Stop"
 if ($Teardown) {
     Write-Host "Deleting resource group '$ResourceGroup'..." -ForegroundColor Yellow
     az group delete --name $ResourceGroup --yes --no-wait
-    Write-Host "Deletion started (running in background). Note: if you run this script again later with a fresh random StorageAccount/FunctionAppName, you'll get a NEW url — update Person B's FRONTEND_URL and your dashboard config if that happens." -ForegroundColor Yellow
+    Write-Host "Deletion started (running in background). Note: if you run this script again later with a fresh random StorageAccount/FunctionAppName, you'll get a NEW url - update Person B's FRONTEND_URL and your dashboard config if that happens." -ForegroundColor Yellow
     return
 }
 
