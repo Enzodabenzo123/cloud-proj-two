@@ -581,7 +581,7 @@ function showDashboardScreen(user){
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('dashboardMain').style.display = 'block';
   document.getElementById('userBadge').style.display = 'flex';
-  // ! DEMO: logged-in user's name, straight from /api/me, shown top-right
+  // * DEMO: shows the logged-in user's name here, using data from /api/me
   document.getElementById('userName').textContent = 'Hi, ' + user.name;
 }
 
@@ -633,13 +633,13 @@ async function handleLogout(){
       headers: token ? { 'Authorization': 'Bearer ' + token } : {}
     });
   }catch(err){ /* logout is best-effort client-side regardless */ }
-  // ! DEMO: token is actually deleted from storage, not just hidden in the UI
+  // ! DEMO: this deletes the saved login token for real, not just hides the dashboard
   clearToken();
   showLoginScreen();
   setAuthMode('login');
 }
 
-// ! DEMO: picks the JWT off the #token= redirect from GitHub OAuth and stores it
+// ! DEMO: grabs the login token GitHub sends back after sign-in and saves it
 function consumeGithubTokenFromHash(){
   const hash = window.location.hash;
   if(hash.startsWith('#token=')){
@@ -653,7 +653,7 @@ async function checkAuth(){
   const token = getToken();
   if(!token){ showLoginScreen(); return; }
   try{
-    // ! DEMO: dashboard is gated behind a live token check, not just a client-side flag
+    // ! DEMO: checks with the server that the token is still valid before showing the dashboard
     const res = await fetch(AUTH_BASE_URL + '/api/me', {
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -709,9 +709,7 @@ function renderRecipesTable(data){
   const tbody = document.getElementById('recipesTableBody');
   tbody.innerHTML = '';
   const recipes = data.recipes || [];
-  // ! DEMO: recipe fields are set via textContent below, not innerHTML — recipe
-  // data renders as plain text even if it contained markup, instead of being
-  // parsed as HTML
+  // ! DEMO: recipe text is shown as plain text below, not run as HTML, so it can't inject code
 
   if(recipes.length === 0){
     const tr = document.createElement('tr');
@@ -756,7 +754,7 @@ async function searchRecipes(page = 1){
 
   setRecipeStatus('Searching...');
   try{
-    // ? DEMO: real fetch against the live /api/recipes endpoint with real query params
+    // ? DEMO: sends a real request to the live /api/recipes endpoint, not fake data
     const res = await fetch(`${base}/api/recipes?${params.toString()}`);
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();

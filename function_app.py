@@ -65,14 +65,13 @@ def recipes(req: func.HttpRequest) -> func.HttpResponse:
 
         filtered = df
 
-        # ? DEMO: diet-type filter — case-insensitive exact match
+        # * DEMO: diet-type filter — matches the diet type exactly, ignoring upper/lowercase
         if diet_type:
             filtered = filtered[filtered["Diet_type"].str.lower() == diet_type.lower()]
 
-        # ? DEMO: keyword search across recipe name and cuisine type
-        # ! DEMO: regex=False — treats input as a literal string, not a regex. Without
-        # this, a keyword like "chicken(" (a completely normal search) crashes the
-        # endpoint with a 500 from an unterminated-subpattern error.
+        # * DEMO: keyword search across recipe name and cuisine type
+        # * DEMO: search terms are matched as plain text, not treated as a special
+        # * search pattern — so an odd character like "(" won't crash the page.
         if keyword:
             kw = keyword.lower()
             mask = (
@@ -81,7 +80,7 @@ def recipes(req: func.HttpRequest) -> func.HttpResponse:
             )
             filtered = filtered[mask]
 
-        # ? DEMO: pagination math — total_pages + slice by page/page_size
+        # * DEMO: pagination — works out how many pages there are, then grabs just this page's recipes
         total_results = len(filtered)
         total_pages = max(1, math.ceil(total_results / page_size))
         start = (page - 1) * page_size
