@@ -8,8 +8,7 @@
   This is NOT a respin of Person A's original resource. It's a fresh copy
   of their code, deployed by you, under your own subscription, in its own
   resource group, kept deliberately isolated from your recipes API resource
-  group. Disclose this plainly in your submission - see the disclosure note
-  template printed at the end of this script and in DISCLOSURE_NOTE.md.
+  group. Disclose this plainly in your submission (video/writeup).
 
   Creates: resource group, storage account (with datasets/results/analysis
   containers), Redis Basic (C0), and a Python Function App on a Consumption
@@ -142,7 +141,6 @@ Write-Host "Waiting 20s for the blob trigger to fire and cache to populate..." -
 Start-Sleep -Seconds 20
 
 $FunctionAppUrl = "https://$FunctionAppName.azurewebsites.net"
-$NewConnStr = $StorageConnStr
 
 Write-Host ""
 Write-Host "Done. Rebuilt pipeline is live at:" -ForegroundColor Green
@@ -151,11 +149,14 @@ Write-Host ""
 Write-Host "Verify it worked:" -ForegroundColor Green
 Write-Host "  curl.exe -s $FunctionAppUrl/api/analyze"
 Write-Host ""
-Write-Host "Connection string for YOUR recipes API to read results/All_Diets_clean.csv" -ForegroundColor Green
-Write-Host "(pass this as -PersonAConnectionString to deploy-recipes-api.ps1):" -ForegroundColor Green
-Write-Host "  $NewConnStr" -ForegroundColor Green
+Write-Host "The storage connection string for YOUR recipes API to read" -ForegroundColor Green
+Write-Host "results/All_Diets_clean.csv has been set as STORAGE_CONNECTION_STRING" -ForegroundColor Green
+Write-Host "on '$FunctionAppName'. To retrieve it when you need it for" -ForegroundColor Green
+Write-Host "-PersonAConnectionString on deploy-recipes-api.ps1, run:" -ForegroundColor Green
+Write-Host "  az functionapp config appsettings list --name $FunctionAppName --resource-group $ResourceGroup --query ""[?name=='STORAGE_CONNECTION_STRING'].value"" -o tsv" -ForegroundColor Green
 Write-Host ""
 Write-Host "=====================================================" -ForegroundColor Magenta
 Write-Host " REMEMBER: disclose this rebuild in your video/writeup." -ForegroundColor Magenta
-Write-Host " See DISCLOSURE_NOTE.md for suggested wording." -ForegroundColor Magenta
+Write-Host " This is a fresh copy of Person A's code under your own" -ForegroundColor Magenta
+Write-Host " subscription, not a respin of their original resource." -ForegroundColor Magenta
 Write-Host "====================================================="  -ForegroundColor Magenta

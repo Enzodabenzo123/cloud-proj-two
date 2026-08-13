@@ -1,20 +1,16 @@
 <#
 .SYNOPSIS
-  Deploys Person C's dashboard (webapp/) as its own Azure Static Web App.
+  Deploys the dashboard (Kaley/webapp) as its own Azure Static Web App.
 
 .DESCRIPTION
-  Deliberately scoped to just the frontend — does NOT touch projtwo/ (the old
-  Phase 2 backend, now superseded by Person A's live /api/analyze). This is
-  separate infra from deploy-recipes-api.ps1, under your own subscription,
-  matching the "own Function App, own deployment" pattern from the Phase 3
-  context doc. No connection strings or secrets needed for this piece.
-
-  Safe to re-run any time (e.g. after the resource group gets deleted between
-  sessions to save cost).
+  Scoped to just the frontend. Separate infra from deploy-recipes-api.ps1,
+  under its own subscription, matching the "own Function App, own
+  deployment" pattern from the Phase 3 context doc. No connection strings
+  or secrets needed for this piece.
 
 .PREREQUISITES
-  - Azure CLI installed and you're logged in (the script will call
-    'az login' for you if needed)
+  - Azure CLI installed and logged in (the script will call 'az login' for
+    you if needed)
   - Static Web Apps CLI installed: npm install -g @azure/static-web-apps-cli
 
 .EXAMPLE
@@ -26,21 +22,10 @@ param(
     [string]$Location = "centralus",
     [string]$StaticAppName = "diet-dashboard-personc-swa",
     [string]$FrontendParent = ".",
-    [string]$FrontendFolder = "webapp",
-
-    # Pass -Teardown to delete everything this script created instead of
-    # deploying (handy for saving cost between work sessions).
-    [switch]$Teardown
+    [string]$FrontendFolder = "Kaley/webapp"
 )
 
 $ErrorActionPreference = "Stop"
-
-if ($Teardown) {
-    Write-Host "Deleting resource group '$ResourceGroup'..." -ForegroundColor Yellow
-    az group delete --name $ResourceGroup --yes --no-wait
-    Write-Host "Deletion started (running in background). Note: this only removes the dashboard's Static Web App. If you also deployed the recipes API into the same resource group, that goes with it too - re-run deploy-recipes-api.ps1 afterward if you still need it." -ForegroundColor Yellow
-    return
-}
 
 Write-Host "Checking Azure CLI login..." -ForegroundColor Cyan
 az account show *> $null
@@ -49,7 +34,7 @@ if ($LASTEXITCODE -ne 0) {
     az login
 }
 
-Write-Host "Creating resource group '$ResourceGroup' in $Location (no-op if it already exists)..." -ForegroundColor Cyan
+Write-Host "Creating resource group '$ResourceGroup' in $Location..." -ForegroundColor Cyan
 az group create --name $ResourceGroup --location $Location --output none
 
 Write-Host "Creating Static Web App '$StaticAppName'..." -ForegroundColor Cyan

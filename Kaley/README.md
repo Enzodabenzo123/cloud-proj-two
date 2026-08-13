@@ -65,18 +65,6 @@ Optional parameters if you want control over naming/region:
   -FunctionAppName "my-recipes-api-2026"
 ```
 
-## Tearing it down between sessions
-
-Same idea as the team's `respin.ps1` — delete the resource group when you're
-not actively working, to save cost:
-```powershell
-./deployment/deploy-recipes-api.ps1 -PersonAConnectionString "x" -Teardown
-```
-Note: if you don't pin `-FunctionAppName`, re-running the script afterward
-generates a new random name and therefore a new URL. If that happens, update
-your dashboard's config and let Person B know if you'd already sent them a
-URL for `FRONTEND_URL`.
-
 ## Testing locally before deploying
 
 ```bash

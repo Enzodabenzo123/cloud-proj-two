@@ -1,19 +1,15 @@
 <#
 .SYNOPSIS
-  Provisions and deploys Person C's search/filter/pagination Function App.
+  Provisions and deploys the search/filter/pagination Function App.
 
 .DESCRIPTION
-  Mirrors the team's respin.ps1 pattern: run this once to create everything
-  from scratch, or re-run any time (e.g. after the resource group gets
-  deleted between sessions to save cost) to bring it back up.
-
   Creates a resource group, a storage account (required by the Functions
   runtime itself - separate from Person A's data storage), and a Python
   Function App on a Consumption plan, then publishes function_app.py to it.
 
 .PREREQUISITES
-  - Azure CLI installed and you're logged in (the script will call
-    'az login' for you if needed)
+  - Azure CLI installed and logged in (the script will call 'az login' for
+    you if needed)
   - Azure Functions Core Tools installed (the 'func' command)
   - Person A's read connection string for the 'results' container
     (ask them for a SAS-scoped connection string, not their full account key)
@@ -31,22 +27,10 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$PersonAConnectionString,
 
-    [string]$FunctionsProjectPath = ".",
-
-    # Pass -Teardown to delete everything this script created instead of
-    # deploying (handy for saving cost between work sessions, same idea as
-    # the team's respin.ps1 deleting the resource group).
-    [switch]$Teardown
+    [string]$FunctionsProjectPath = "Kaley"
 )
 
 $ErrorActionPreference = "Stop"
-
-if ($Teardown) {
-    Write-Host "Deleting resource group '$ResourceGroup'..." -ForegroundColor Yellow
-    az group delete --name $ResourceGroup --yes --no-wait
-    Write-Host "Deletion started (running in background). Note: if you run this script again later with a fresh random StorageAccount/FunctionAppName, you'll get a NEW url - update Person B's FRONTEND_URL and your dashboard config if that happens." -ForegroundColor Yellow
-    return
-}
 
 Write-Host "Checking Azure CLI login..." -ForegroundColor Cyan
 az account show *> $null
